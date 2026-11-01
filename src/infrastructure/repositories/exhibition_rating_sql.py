@@ -19,7 +19,7 @@ def work_rating_sql(work_id: str) -> str:
     if work_id not in {"w.work_id", "page.work_id"}:
         raise ValueError("Unsupported work scope")
     return f"""(select jsonb_build_object(
-        'exhibition_id',e.exhibition_id,
+        'exhibition_id',e.exhibition_id, 'name',e.name,
         'year',extract(year from e.event_at at time zone 'Asia/Hebron')::int
         ) || {rating_totals_sql('e.exhibition_id', 'es.work_id')}
         from exhibition_submissions es join exhibitions e on e.exhibition_id=es.exhibition_id

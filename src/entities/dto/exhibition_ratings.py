@@ -20,4 +20,5 @@ class RatingState(RatingTotals):
 
 class WorkRatingSummary(RatingTotals):
     exhibition_id: UUID
+    name: str = ""
     year: int

@@ -44,3 +44,11 @@ pagination and eligibility rules are unchanged; no migration.
 Matching branch `fix/lightweight-exhibition-badges`; backend baseline `48c5704`.
 Deploy backend then frontend. Revert this frontend revision and backend revision
 to restore prior year badges, not the original feature-creation commits.
+
+## Named card labels (2026-11-01)
+
+The existing `exhibition_rating` summary now also contains the publicly eligible
+exhibition's `name`. This uses the same selected row, approval/start/block guards
+and deterministic latest-event ordering, not another query or full metadata array.
+The DTO defaults name to an empty string for older rows/fixtures. The frontend
+uses it beside the trophy; no migration or voting-authorization change is needed.

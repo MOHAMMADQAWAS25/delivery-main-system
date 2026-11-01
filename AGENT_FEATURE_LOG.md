@@ -3351,3 +3351,25 @@ Migration required:20261101_018_create_exhibition_ratings.sql. Composite unique 
 ### Deployment and Git
 
 Apply migration/backend first via existing main workflow, then frontend; no user-system deployment. Matching feature/exhibition-artwork-ratings branches. Backend subject Add exhibition-scoped artwork rating persistence and APIs. Fetch/rebase before branch push and previously authorized fast-forward main merge/push. Exact hashes, conflicts/push/merge and workflow results in handoff. Rollback frontend application commit first, then backend if necessary, preserving rating table/permission rows and votes. Export and explicit approval required before destructive schema rollback; no reset/drop or historical log removal. Detailed policy/limitations in docs.
+
+## 2026-11-01 - Exhibition names in lightweight artwork summaries
+
+### Request and changes
+
+Provide the exhibition name beside the trophy in artwork hover badges. WorkRatingSummary adds backward-compatible name with an empty default. Existing work_rating_sql JSON selects e.name from the same latest approved, started, unblocked membership already used for public rating totals. No additional query, per-card HTTP call, full metadata aggregation, row fanout or pagination/order change. Frontend-only gallery popup voting reuses existing authorized rating endpoints unchanged.
+
+### Repositories and files
+
+Main-system and companion user-FE; user-system checked and unchanged. All three clean main branches pulled ff-only before implementation. Files: src/entities/dto/exhibition_ratings.py, src/infrastructure/repositories/exhibition_rating_sql.py, tests/test_exhibition_ratings.py, docs/artwork-exhibition-badges.md and this log. Incoming ratings/popup work preserved.
+
+### API, database, permissions and SnapStart
+
+Additive public exhibition_rating.name on existing feed/work/search/profile/related summary responses. No migration, schema, permission, voting eligibility, session actor, IAM, dependency, credential, environment, storage/data mutation or import-time client/connection/clock changes. Backend remains authoritative for rating windows, ownership/organizer restrictions, active/verified/allowed users and approved/unblocked works. SnapStart behavior unchanged.
+
+### Verification
+
+177 tests passed; two existing opt-in database checks skipped. Mypy passed89 files; git diff --check passed. Regression checks name SQL projection, unchanged eligibility/order and DTO default/named serialization. Initial obsolete temporary venv lacked pyvenv.cfg; reran successfully with workspace uv and temporary dependency cache. Existing AnyIO deprecation warning only. No real PostgreSQL plan/concurrency certification or production votes/uploads/data mutations.
+
+### Deployment and Git
+
+Deploy backend first, frontend second through existing main workflows; no migration/user-system deployment. Matching branch fix/exhibition-community-polish. Backend subject Include exhibition names in artwork badge summaries. Fetch/rebase before branch push, then previously authorized fast-forward main merge/push. Exact hashes, conflicts/push/merge and workflows reported in handoff. Revert frontend first, then this additive backend commit if required; preserve votes/schema and unrelated work. Historical entries unchanged.

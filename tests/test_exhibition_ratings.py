@@ -219,3 +219,12 @@ def test_rating_schema_security_and_latest_scope_are_explicit() -> None:
     sql = work_rating_sql("page.work_id")
     assert "es.work_id=page.work_id" in sql and "order by e.event_at desc,e.exhibition_id limit 1" in sql
     assert "es.status='approved'" in sql and "e.event_at<=now()" in sql
+    assert "'name',e.name" in sql
+
+
+def test_public_rating_summary_keeps_exhibition_name_with_backward_compatibility() -> None:
+    from src.entities.dto.exhibition_ratings import WorkRatingSummary
+    old = WorkRatingSummary(exhibition_id=UUID(int=1), year=2026)
+    assert old.name == ""
+    named = WorkRatingSummary(exhibition_id=UUID(int=1), year=2026, name="Student exhibition")
+    assert named.model_dump(mode="json")["name"] == "Student exhibition"
