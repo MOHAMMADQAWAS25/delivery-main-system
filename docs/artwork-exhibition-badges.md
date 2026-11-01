@@ -30,3 +30,17 @@ no destructive reset or data rollback. Backend baseline
 Verification includes relational eligibility fixtures (PostgreSQL JSON/year syntax
 adapted for SQLite), single-query feed serialization and existing pagination tests.
 No claim of a production PostgreSQL query plan or physical-device certification.
+
+## Lightweight revision (2026-11-01)
+
+Supersedes the original all-responses array behavior above. Feed/related/search
+and profile/list cards now receive `has_exhibition` through SQL EXISTS with the
+same public eligibility predicates. Feed/related omit the full array; WorkResponse
+lists keep an empty array for compatibility. Only a single-work lookup selects
+names/IDs/years. Exhibition submission/gallery responses no longer select metadata
+because exhibition-page cards no longer display a trophy. Existing authorization,
+pagination and eligibility rules are unchanged; no migration.
+
+Matching branch `fix/lightweight-exhibition-badges`; backend baseline `48c5704`.
+Deploy backend then frontend. Revert this frontend revision and backend revision
+to restore prior year badges, not the original feature-creation commits.

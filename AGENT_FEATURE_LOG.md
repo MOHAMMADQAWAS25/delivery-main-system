@@ -3305,3 +3305,25 @@ Additive exhibitions array contains exhibition_id/name/year and defaults empty. 
 ### Deployment and Git
 
 Deploy this backend first, frontend second through existing main workflows; no migration or user-system deployment. Matching feature/artwork-exhibition-badges branches; backend subject Expose public exhibition membership on artwork responses. Fetch/rebase before branch push, then previously authorized fast-forward main merge/push. Exact commit/push/conflict and workflow results in handoff. Revert frontend first, then backend companion if requested; baseline and limits in docs. No reset/force push or historical log removal.
+
+## 2026-11-01 - Lightweight artwork exhibition flags
+
+### Request and changes
+
+Reduce card payload/work for icon-only exhibition badges. Feed/related/search and profile/list responses now use has_exhibition SQL EXISTS with unchanged approved/started/unblocked public eligibility. FeedCardResponse carries only the boolean; WorkResponse lists retain an empty exhibitions array for compatibility. Only single-work lookup aggregates exhibition IDs/names/years. Exhibition submission/gallery no longer selects badge metadata, matching removal from exhibition-page artwork cards. No per-card requests, count/ordering/limit/cursor changes or metadata row fanout.
+
+### Repositories and files
+
+Companion main-system and user-FE only; user-system unchanged. Clean main pulled and complete log read; backend baseline48c570441f8f0e28387e9ce8d5b4b1d4ef48b51b. Files: works/feed/exhibitions DTOs; work_exhibition_sql/work/related/exhibition repositories; feed/related/badge tests; docs/artwork-exhibition-badges.md and this log.
+
+### API, database, permissions and scope
+
+Additive has_exhibition flag; full exhibitions data reserved for single-work detail. Feed/related/submission arrays removed from prior presentation metadata; coordinated frontend supports both old arrays and new flag. No migration, schema/index, permission, IAM, dependency, environment, secret or import-time state changes. Existing active/published/authorization guards retained. No SnapStart changes or production data mutations.
+
+### Verification
+
+147 tests passed, two existing opt-in database checks skipped; mypy src tests passed82 files and git diff --check passed. Tests verify boolean serialization without full metadata, detail-only aggregation, eligibility/withdrawal parity against relational fixtures, and unchanged related-vector/pagination behavior. Existing SQLite fixture omits only independently tested badge expression. No measured latency claim or real PostgreSQL query-plan certification. Existing AnyIO warning remains.
+
+### Deployment and Git
+
+Backend first, frontend next; existing main workflows, no migration or user-system deployment. Matching branch fix/lightweight-exhibition-badges; subject Use lightweight exhibition flags on artwork cards. Fetch/rebase before branch push then previously authorized fast-forward main merge/push. Exact hashes/push/conflict/deployment outcome in handoff. Revert paired revision commits to restore prior year badges; no destructive reset or data rollback. Previous log entries preserved.

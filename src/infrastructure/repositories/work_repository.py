@@ -3,7 +3,7 @@ from datetime import UTC, datetime
 from uuid import UUID
 
 from sqlalchemy import delete, select, text
-from src.infrastructure.repositories.work_exhibition_sql import work_exhibitions_sql
+from src.infrastructure.repositories.work_exhibition_sql import work_exhibitions_sql, has_work_exhibition_sql
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -75,7 +75,7 @@ class SqlAlchemyWorkRepository:
                 limit :limit
             )
             select page.*,
-                   {work_exhibitions_sql("page.work_id")} as exhibitions,
+                   {has_work_exhibition_sql("page.work_id")} as has_exhibition,
                    coalesce(p.full_name, 'InkFig artist') as artist_name,
                    p.avatar_object_path as artist_avatar_path,
                    (select count(*) from work_likes l
@@ -228,7 +228,8 @@ class SqlAlchemyWorkRepository:
             f"""
             select
                 w.work_id,
-                {work_exhibitions_sql("w.work_id")} as exhibitions,
+                {work_exhibitions_sql("w.work_id") if work_id is not None else "'[]'::jsonb"} as exhibitions,
+                {has_work_exhibition_sql("w.work_id")} as has_exhibition,
                 w.owner_user_id,
                 coalesce(p.full_name, 'InkFig artist') as artist_name,
                 p.avatar_object_path as artist_avatar_path,
@@ -272,6 +273,7 @@ class SqlAlchemyWorkRepository:
         rows = (await self._session.execute(stmt, parameters)).mappings()
         return [
             WorkResponse(
+                has_exhibition=r.get("has_exhibition", False),
                 exhibitions=r.get("exhibitions", []),
                 work_id=r.work_id,
                 owner_user_id=r.owner_user_id,
@@ -538,7 +540,7 @@ class SqlAlchemyWorkRepository:
                 text(
                     f"""
                     select w.work_id, w.owner_user_id,
-                           {work_exhibitions_sql("w.work_id")} as exhibitions,
+                           {has_work_exhibition_sql("w.work_id")} as has_exhibition,
                            coalesce(p.full_name, 'InkFig artist') as artist_name,
                            p.avatar_object_path as artist_avatar_path,
                            w.type_id, t.name_en, t.name_ar, w.title, w.description,
@@ -571,7 +573,7 @@ class SqlAlchemyWorkRepository:
         ).mappings()
         return [
             WorkSearchResponse(
-                exhibitions=r.get("exhibitions", []),
+                has_exhibition=r.get("has_exhibition", False),
                 work_id=r.work_id,
                 owner_user_id=r.owner_user_id,
                 artist_name=r.artist_name,

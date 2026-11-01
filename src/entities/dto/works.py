@@ -99,6 +99,7 @@ class WorkUploadResponse(BaseModel):
 
 
 class WorkResponse(BaseModel):
+    has_exhibition: bool = False
     exhibitions: list[WorkExhibition] = Field(default_factory=list)
     work_id: UUID
     owner_user_id: UUID

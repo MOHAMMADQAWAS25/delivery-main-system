@@ -2,7 +2,7 @@ from datetime import datetime
 from uuid import UUID
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
-from src.infrastructure.repositories.work_exhibition_sql import work_exhibitions_sql
+from src.infrastructure.repositories.work_exhibition_sql import has_work_exhibition_sql
 from src.entities.dto.feed import FeedCardResponse
 from src.infrastructure.integrations.supabase_storage import SupabaseWorkStorage
 
@@ -40,7 +40,7 @@ class SqlAlchemyRelatedArtworksRepository:
                 limit :limit offset :offset
             )
             select page.work_id, page.owner_user_id, page.type_id, page.title,
-                {work_exhibitions_sql("page.work_id")} as exhibitions,
+                {has_work_exhibition_sql("page.work_id")} as has_exhibition,
                 page.storage_path, page.mime_type, page.created_at, page.media,
                 t.name_en as type_name_en, t.name_ar as type_name_ar,
                 coalesce(p.full_name, 'InkFig artist') as artist_name,

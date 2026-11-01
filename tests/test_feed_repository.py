@@ -58,7 +58,7 @@ async def test_feed_serializes_badge_metadata_in_the_same_page_query() -> None:
     values = {"work_id": UUID(int=1), "owner_user_id": UUID(int=2), "artist_name": "Artist",
               "type_id": UUID(int=3), "type_name_en": "Art", "type_name_ar": "Art", "title": "Artwork",
               "mime_type": "image/png", "like_count": 0, "liked_by_me": False, "saved_by_me": False,
-              "created_at": datetime.now(UTC), "exhibitions": [{"exhibition_id": str(UUID(int=4)), "name": "Annual", "year": 2026}]}
+              "created_at": datetime.now(UTC), "has_exhibition": True}
     row = MagicMock()
     row.items.return_value = values.items()
     row.artist_avatar_path = None
@@ -68,6 +68,21 @@ async def test_feed_serializes_badge_metadata_in_the_same_page_query() -> None:
     session.execute = AsyncMock(return_value=result)
     repository = SqlAlchemyWorkRepository(cast(AsyncSession, session), SupabaseWorkStorage("https://storage.test", "unused", "works"))
     cards = await repository.list_feed_cards(None, 20, None, None, None)
-    assert cards[0].exhibitions[0].year == 2026
-    assert cards[0].model_dump(mode="json")["exhibitions"][0]["exhibition_id"] == str(UUID(int=4))
+    assert cards[0].has_exhibition is True
+    assert "exhibitions" not in cards[0].model_dump(mode="json")
     session.execute.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("detail", [False, True])
+async def test_full_exhibition_metadata_is_selected_only_for_single_artwork(detail: bool) -> None:
+    session = MagicMock(spec=AsyncSession)
+    result = MagicMock()
+    result.mappings.return_value = []
+    session.execute = AsyncMock(return_value=result)
+    repository = SqlAlchemyWorkRepository(cast(AsyncSession, session), SupabaseWorkStorage("https://storage.test", "unused", "works"))
+    await repository.list_published(None, 20, None, None, work_id=UUID(int=1) if detail else None)
+    statement, _ = session.execute.call_args.args
+    query = str(statement)
+    assert ("'exhibition_id'" in query) == detail
+    assert "as has_exhibition" in query

@@ -15,3 +15,13 @@ def work_exhibitions_sql(work_id: str) -> str:
           and not exists(select 1 from exhibition_blocks eb
                          where eb.exhibition_id=es.exhibition_id and eb.user_id=es.user_id)
     ), '[]'::jsonb)"""
+
+
+def has_work_exhibition_sql(work_id: str) -> str:
+    if work_id not in {"w.work_id", "page.work_id"}:
+        raise ValueError("Unsupported internal work alias")
+    return f"""exists(select 1 from exhibition_submissions es
+        join exhibitions e on e.exhibition_id=es.exhibition_id
+        where es.work_id={work_id} and es.status='approved' and e.event_at<=now()
+          and not exists(select 1 from exhibition_blocks eb
+                         where eb.exhibition_id=es.exhibition_id and eb.user_id=es.user_id))"""

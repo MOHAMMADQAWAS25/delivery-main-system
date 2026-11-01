@@ -16,7 +16,7 @@ from src.entities.exceptions.works import WorkNotFoundError
 from src.infrastructure.config.settings import get_settings
 from src.infrastructure.integrations.supabase_storage import SupabaseWorkStorage
 from src.infrastructure.repositories.related_artworks_repository import SqlAlchemyRelatedArtworksRepository
-from src.infrastructure.repositories.work_exhibition_sql import work_exhibitions_sql
+from src.infrastructure.repositories.work_exhibition_sql import has_work_exhibition_sql
 from src.entities.dto.related_artworks import RelatedArtworksResponse
 from src.interface.dependencies.authentication import get_optional_user
 from src.interface.dependencies.works import get_related_artworks_service
@@ -147,7 +147,7 @@ async def test_query_filters_weak_missing_and_incompatible_vectors_without_categ
                 sql = str(statement).replace("e.embedding <=> source.embedding", "cosine_distance(e.embedding, source.embedding)")
                 # This fixture tests vector eligibility; badge SQL has independent
                 # relational coverage in test_work_exhibition_badges.py.
-                sql = sql.replace(work_exhibitions_sql("page.work_id") + " as exhibitions,", "")
+                sql = sql.replace(has_work_exhibition_sql("page.work_id") + " as has_exhibition,", "")
                 return connection.execute(text(sql), {key: value.isoformat() if isinstance(value, datetime) else str(value) if isinstance(value, UUID) else value for key, value in parameters.items()})
 
             session = MagicMock(spec=AsyncSession)

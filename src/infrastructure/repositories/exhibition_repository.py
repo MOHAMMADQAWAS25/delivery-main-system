@@ -7,7 +7,6 @@ from sqlalchemy import text
 from sqlalchemy.engine import RowMapping
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
-from src.infrastructure.repositories.work_exhibition_sql import work_exhibitions_sql
 
 from src.entities.dto.exhibitions import (
     Exhibition,
@@ -307,7 +306,6 @@ class SqlAlchemyExhibitionRepository:
                 await self.session.execute(
                     text(f"""
             select s.*,w.title,w.description,w.storage_path,t.name_en type_name_en,t.name_ar type_name_ar,p.full_name artist_name,
-                   {work_exhibitions_sql("w.work_id")} as exhibitions,
                    p.avatar_object_path as artist_avatar_path from exhibition_submissions s
             join works w on w.work_id=s.work_id join user_profiles p on p.user_id=s.user_id
             join work_types t on t.type_id=w.type_id
