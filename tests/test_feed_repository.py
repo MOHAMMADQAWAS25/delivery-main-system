@@ -50,3 +50,24 @@ def test_creator_avatar_urls_preserve_missing_and_encoded_paths() -> None:
     storage = SupabaseWorkStorage("https://storage.test", "unused", "works")
     assert storage.profile_avatar_url(None) is None
     assert storage.profile_avatar_url("user/photo one.jpg") == "https://storage.test/storage/v1/object/public/profile-avatars/user/photo%20one.jpg"
+
+
+@pytest.mark.asyncio
+async def test_feed_serializes_badge_metadata_in_the_same_page_query() -> None:
+    session = MagicMock(spec=AsyncSession)
+    values = {"work_id": UUID(int=1), "owner_user_id": UUID(int=2), "artist_name": "Artist",
+              "type_id": UUID(int=3), "type_name_en": "Art", "type_name_ar": "Art", "title": "Artwork",
+              "mime_type": "image/png", "like_count": 0, "liked_by_me": False, "saved_by_me": False,
+              "created_at": datetime.now(UTC), "exhibitions": [{"exhibition_id": str(UUID(int=4)), "name": "Annual", "year": 2026}]}
+    row = MagicMock()
+    row.items.return_value = values.items()
+    row.artist_avatar_path = None
+    row.storage_path = "art.png"
+    result = MagicMock()
+    result.mappings.return_value = [row]
+    session.execute = AsyncMock(return_value=result)
+    repository = SqlAlchemyWorkRepository(cast(AsyncSession, session), SupabaseWorkStorage("https://storage.test", "unused", "works"))
+    cards = await repository.list_feed_cards(None, 20, None, None, None)
+    assert cards[0].exhibitions[0].year == 2026
+    assert cards[0].model_dump(mode="json")["exhibitions"][0]["exhibition_id"] == str(UUID(int=4))
+    session.execute.assert_awaited_once()

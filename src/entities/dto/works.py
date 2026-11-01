@@ -4,6 +4,7 @@ from uuid import UUID
 from pydantic import BaseModel, Field, HttpUrl, field_validator, model_validator
 
 from src.entities.dto.media import ImageMedia
+from src.entities.dto.work_exhibitions import WorkExhibition
 
 
 class WorkTypeResponse(BaseModel):
@@ -98,6 +99,7 @@ class WorkUploadResponse(BaseModel):
 
 
 class WorkResponse(BaseModel):
+    exhibitions: list[WorkExhibition] = Field(default_factory=list)
     work_id: UUID
     owner_user_id: UUID
     artist_name: str

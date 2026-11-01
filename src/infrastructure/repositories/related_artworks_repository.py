@@ -2,6 +2,7 @@ from datetime import datetime
 from uuid import UUID
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
+from src.infrastructure.repositories.work_exhibition_sql import work_exhibitions_sql
 from src.entities.dto.feed import FeedCardResponse
 from src.infrastructure.integrations.supabase_storage import SupabaseWorkStorage
 
@@ -19,7 +20,7 @@ class SqlAlchemyRelatedArtworksRepository:
     async def list_related(self, work_id: UUID, viewer: UUID | None, snapshot: datetime,
                            offset: int, limit: int) -> list[FeedCardResponse]:
         # Compare stored, model-compatible vectors only. No provider/network call.
-        rows = (await self._session.execute(text("""
+        rows = (await self._session.execute(text(f"""
             with source as (
                 select e.embedding, e.model_name from works w
                 join user_accounts a on a.user_id=w.owner_user_id and a.account_status='active'
@@ -39,6 +40,7 @@ class SqlAlchemyRelatedArtworksRepository:
                 limit :limit offset :offset
             )
             select page.work_id, page.owner_user_id, page.type_id, page.title,
+                {work_exhibitions_sql("page.work_id")} as exhibitions,
                 page.storage_path, page.mime_type, page.created_at, page.media,
                 t.name_en as type_name_en, t.name_ar as type_name_ar,
                 coalesce(p.full_name, 'InkFig artist') as artist_name,

@@ -3284,3 +3284,24 @@ Deploy main backend first, frontend second through existing main workflows. No m
 ### Notes
 
 300 x 200 fails; 500 x 300 passes. No new import-time clients/connections/clocks or SnapStart concerns. Previous log entries and unrelated SAM configuration retained.
+## 2026-11-01 - Artwork exhibition badge metadata
+
+### Request and changes
+
+Support exhibition year badges on artwork cards and details. Added shared WorkExhibition DTO and approved/public exhibition summaries to work/detail/search/feed/related/submission responses. Shared correlated SQL uses existing work/submission indexes inside each page query, avoiding per-card requests and row multiplication. Eligibility matches approved, started, unblocked public gallery participation. Past badges persist; approved withdrawals/deleted exhibitions disappear on fresh reads. Event year uses Asia/Hebron, not artwork creation. Existing ordering/pagination/authorization retained.
+
+### Repositories and files
+
+Main-system backend and companion user-FE only; user-system unchanged. Clean main pulled and complete log read. Backend baseline 653e98969f310f94bd92c72316c32fb228e11296. Files: dto/work_exhibitions.py, works/feed/exhibitions DTOs; repositories/work_exhibition_sql.py and work/related/exhibition repository queries; tests/test_work_exhibition_badges.py, test_feed_repository.py, test_related_artworks.py; docs/artwork-exhibition-badges.md and this log.
+
+### API, database, permissions and scope
+
+Additive exhibitions array contains exhibition_id/name/year and defaults empty. No migration, schema/index/data mutation, permission, IAM, dependency, environment or secret changes. Existing published/active-owner guards remain authoritative. No import-time clients/connections/clocks, preserving SnapStart behavior. No approval, rejection or withdrawal behavior changed.
+
+### Verification
+
+145 backend tests passed, two existing opt-in database checks skipped; mypy src tests passed across82 files; git diff --check passed. Relational fixture tests approved/pending/rejected/future/blocked eligibility, past retention and withdrawal deletion; feed test verifies metadata serialization in one query. Existing vector fixture omits only independently tested PostgreSQL badge JSON expression for SQLite compatibility; no vector checks bypassed. Full suite rerun after initial SQLite syntax failures. No live PostgreSQL plan/timezone-engine or production mutation testing; SQL explicitly uses named timezone and deterministic ordering. Existing AnyIO warning remains.
+
+### Deployment and Git
+
+Deploy this backend first, frontend second through existing main workflows; no migration or user-system deployment. Matching feature/artwork-exhibition-badges branches; backend subject Expose public exhibition membership on artwork responses. Fetch/rebase before branch push, then previously authorized fast-forward main merge/push. Exact commit/push/conflict and workflow results in handoff. Revert frontend first, then backend companion if requested; baseline and limits in docs. No reset/force push or historical log removal.
