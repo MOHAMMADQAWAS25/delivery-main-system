@@ -33,9 +33,10 @@ async def leaderboard(
     exhibition_id: UUID, service: Service, response: Response,
     limit: int = Query(20, ge=1, le=50),
     cursor: int = Query(0, ge=0, le=100000),
+    type_id: UUID | None = None,
 ) -> ExhibitionLeaderboard:
     response.headers["Cache-Control"] = "no-store"
-    return await service.leaderboard(exhibition_id, limit, cursor)
+    return await service.leaderboard(exhibition_id, limit, cursor, type_id)
 
 
 @router.get("", response_model=ExhibitionPage)

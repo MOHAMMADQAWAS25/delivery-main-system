@@ -16,9 +16,9 @@ from src.entities.repositories.works import WorkMediaProcessor, WorkStorage
 
 
 class ExhibitionService:
-    async def leaderboard(self, exhibition_id: UUID, limit: int, cursor: int) -> ExhibitionLeaderboard:
+    async def leaderboard(self, exhibition_id: UUID, limit: int, cursor: int, type_id: UUID | None = None) -> ExhibitionLeaderboard:
         exhibition = await self.get(exhibition_id)
-        page = await self.repository.leaderboard(exhibition_id, limit, cursor)
+        page = await self.repository.leaderboard(exhibition_id, limit, cursor, type_id)
         return ExhibitionLeaderboard(exhibition=exhibition, **page)
 
     async def pending_counts(self, actor: UUID | None) -> dict[str, Any]:

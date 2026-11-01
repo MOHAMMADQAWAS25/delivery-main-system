@@ -2,6 +2,8 @@
 
 Public read-only GET `/api/v1/exhibitions/{id}/leaderboard?limit=20&cursor=0`.
 Limit 1–50, offset cursor 0–100000. Missing exhibition returns 404.
+Optional UUID type_id filters artwork category before aggregation, ranking and
+pagination. Ranks and totals apply to the selected category; omission selects all.
 Response: exhibition metadata, database `fetched_at`, `started`, `voting_open`,
 `total`, ranked `items`, and nullable `next_cursor`. No private voter information
 or personal rating is returned. Responses use no-store.

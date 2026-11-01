@@ -40,7 +40,7 @@ def test_leaderboard_ranks_before_pagination_and_excludes_invalid_votes() -> Non
             ("rejected", "v1", 5), ("private", "v1", 5),
         ):
             db.execute(text("insert into exhibition_ratings values ('e',:w,:v,:score)"), {"w": work, "v": voter, "score": score})
-        sql = text(leaderboard_sql())
+        sql = text(leaderboard_sql().replace("cast(:type_id as uuid)", ":type_id")).bindparams(type_id=None)
         rows = db.execute(sql, {"id": "e", "limit": 2, "cursor": 0}).mappings().all()
         assert [(r["work_id"], r["rank"], r["vote_count"]) for r in rows] == [("b", 1, 2), ("a", 2, 1)]
         assert rows[0]["total"] == 5
@@ -48,6 +48,13 @@ def test_leaderboard_ranks_before_pagination_and_excludes_invalid_votes() -> Non
         assert [(r["work_id"], r["rank"]) for r in second] == [("c", 3), ("d", 3)]
         last = db.execute(sql, {"id": "e", "limit": 2, "cursor": 4}).mappings().one()
         assert last["work_id"] == "e" and last["rank"] == 5
+        db.execute(text("insert into work_types values ('second','Second','ثان')"))
+        db.execute(text("update works set type_id='second' where work_id in ('c','d','e')"))
+        filtered = db.execute(sql, {"id":"e", "type_id":"second", "limit":2, "cursor":0}).mappings().all()
+        assert [(r["work_id"], r["rank"]) for r in filtered] == [("c",1),("d",1)]
+        assert filtered[0]["total"] == 3
+        filtered_next = db.execute(sql, {"id":"e", "type_id":"second", "limit":2, "cursor":2}).mappings().one()
+        assert filtered_next["work_id"] == "e" and filtered_next["rank"] == 3
         empty = db.execute(sql, {"id": "other", "limit": 20, "cursor": 0}).mappings().one()
         assert empty["total"] == 0 and empty["work_id"] is None
         db.execute(text("update exhibitions set event_at='2027-01-01' where exhibition_id='e'"))

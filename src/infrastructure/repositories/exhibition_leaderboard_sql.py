@@ -15,6 +15,7 @@ def leaderboard_sql() -> str:
       join exhibition_ratings r on r.exhibition_id=s.exhibition_id and r.work_id=s.work_id
       join user_accounts voter on voter.user_id=r.user_id
       where s.exhibition_id=:id and s.status='approved' and event.event_at<=statement_timestamp()
+        and (cast(:type_id as uuid) is null or artwork.type_id=cast(:type_id as uuid))
         and artwork.status='published' and owner.account_status='active' and owner.is_active=true
         and participant.account_status='active' and participant.is_active=true
         and not exists(select 1 from exhibition_blocks b

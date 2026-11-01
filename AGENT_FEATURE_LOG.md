@@ -3396,3 +3396,18 @@ No migration or new write permission. Reuse existing rating/submission indexes. 
 ### Deployment and Git
 
 Deploy backend first, frontend second through existing main workflows; no user-system deployment. Commit subject: Add paginated exhibition leaderboards with counted votes. Fetch/rebase before branch push; previously authorized fast-forward merge/push main. Exact commit hashes, conflicts, push/merge and workflow results in final handoff. Revert frontend ticket commit first, then backend ticket commit if requested, preserving historical logs, votes/schema and unrelated work; no reset or destructive rollback.
+
+
+## 2026-11-01 - Leaderboard category and navigation improvements
+
+### Request and changes
+
+Add optional validated UUID type_id query filter to the public leaderboard. Pass through service/protocol/repository and apply to works before aggregation/ranking/pagination, so selected-category totals/ranks/pages are authoritative. Existing zero-vote and eligibility rules retained.
+
+### Repositories and verification
+
+Matching fix/leaderboard-controls branches in main-system and user-FE, clean main pulled ff-only and complete logs read first. User-system unchanged. 178 tests passed, two opt-in database tests skipped; mypy passed92 files. Query regression verifies filtered ranks/totals and subsequent filtered pages, alongside existing exclusions and ties. SQLite adapts UUID cast; no PostgreSQL concurrency/plan certification. git diff --check passed. No credentials, generated output, dependencies, schema migration, permission bypass or import-time/SnapStart resource changes.
+
+### Deployment and Git
+
+Backend first, frontend second through existing main deployments. Commit subject: Filter exhibition leaderboard by artwork category. Fetch/rebase before branch push and authorized fast-forward main merge/push. Exact hashes, conflicts, push and deployment results in handoff. Revert frontend ticket commit first then backend if requested; preserve votes/schema, logs and unrelated work. Live offset pagination limitations unchanged.

@@ -23,11 +23,11 @@ from src.infrastructure.integrations.supabase_storage import SupabaseWorkStorage
 
 
 class SqlAlchemyExhibitionRepository:
-    async def leaderboard(self, exhibition_id: UUID, limit: int, cursor: int) -> dict[str, Any]:
+    async def leaderboard(self, exhibition_id: UUID, limit: int, cursor: int, type_id: UUID | None = None) -> dict[str, Any]:
         from src.infrastructure.repositories.exhibition_leaderboard_sql import leaderboard_sql
 
         rows = (await self.session.execute(text(leaderboard_sql()), {
-            "id": exhibition_id, "limit": limit, "cursor": cursor,
+            "id": exhibition_id, "limit": limit, "cursor": cursor, "type_id": type_id,
         })).mappings().all()
         if not rows:
             raise ExhibitionError(404, "Exhibition not found.")
