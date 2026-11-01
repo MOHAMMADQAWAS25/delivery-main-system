@@ -5,6 +5,7 @@ import pytest
 from sqlalchemy import create_engine, text
 
 from src.infrastructure.repositories.work_exhibition_sql import work_exhibitions_sql, has_work_exhibition_sql
+from src.infrastructure.repositories.exhibition_rating_sql import rating_totals_sql
 
 
 def test_public_badge_sql_filters_and_aliases() -> None:
@@ -23,7 +24,8 @@ def test_public_badge_sql_filters_and_aliases() -> None:
 def test_badge_eligibility_uses_relational_data_not_client_flags() -> None:
     # SQLite adaptation changes only PostgreSQL JSON/year/time syntax; retain
     # the production joins, approval/start/blocked predicates and work scope.
-    sql = work_exhibitions_sql("w.work_id").replace("jsonb_agg", "json_group_array").replace("jsonb_build_object", "json_object")
+    # Eligibility fixture only; rating aggregation has independent relational tests.
+    sql = work_exhibitions_sql("w.work_id").replace(rating_totals_sql("e.exhibition_id", "es.work_id"), "null").replace("jsonb_agg", "json_group_array").replace("jsonb_build_object", "json_object")
     sql = sql.replace("extract(year from e.event_at at time zone 'Asia/Hebron')::int", "cast(strftime('%Y',e.event_at) as integer)")
     sql = sql.replace(" order by e.event_at desc, e.exhibition_id", "").replace("'[]'::jsonb", "'[]'").replace("now()", "'2026-11-01'")
     flag_sql = has_work_exhibition_sql("w.work_id").replace("now()", "'2026-11-01'")

@@ -5,6 +5,7 @@ from pydantic import BaseModel, Field, HttpUrl, field_validator, model_validator
 
 from src.entities.dto.media import ImageMedia
 from src.entities.dto.work_exhibitions import WorkExhibition
+from src.entities.dto.exhibition_ratings import WorkRatingSummary
 
 
 class WorkTypeResponse(BaseModel):
@@ -99,6 +100,7 @@ class WorkUploadResponse(BaseModel):
 
 
 class WorkResponse(BaseModel):
+    exhibition_rating: WorkRatingSummary | None = None
     has_exhibition: bool = False
     exhibitions: list[WorkExhibition] = Field(default_factory=list)
     work_id: UUID

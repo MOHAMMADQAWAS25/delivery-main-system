@@ -84,5 +84,5 @@ async def test_full_exhibition_metadata_is_selected_only_for_single_artwork(deta
     await repository.list_published(None, 20, None, None, work_id=UUID(int=1) if detail else None)
     statement, _ = session.execute.call_args.args
     query = str(statement)
-    assert ("'exhibition_id'" in query) == detail
+    assert ("'[]'::jsonb as exhibitions" not in query) == detail
     assert "as has_exhibition" in query

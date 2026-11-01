@@ -1,7 +1,10 @@
 from typing import Annotated, Literal
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Response
+from src.app.services.exhibition_rating_service import ExhibitionRatingService
+from src.entities.dto.exhibition_ratings import RatingInput, RatingState
+from src.interface.dependencies.exhibition_ratings import get_exhibition_rating_service
 
 from src.app.services.exhibition_service import ExhibitionService
 from src.entities.dto.exhibitions import (
@@ -86,6 +89,7 @@ async def delete_exhibition(
 
 @router.get("/{exhibition_id}/submissions", response_model=SubmissionPage)
 async def submissions(
+    response: Response,
     exhibition_id: UUID,
     service: Service,
     actor: Actor,
@@ -94,7 +98,25 @@ async def submissions(
     limit: int = Query(20, ge=1, le=50),
     cursor: int = Query(0, ge=0, le=100000),
 ) -> SubmissionPage:
+    response.headers["Cache-Control"] = "private, no-store"
+    response.headers["Vary"] = "Cookie, Authorization"
     return await service.submissions(actor, exhibition_id, scope, limit, cursor, status)
+
+
+@router.put("/{exhibition_id}/works/{work_id}/rating", response_model=RatingState)
+async def rate_artwork(exhibition_id: UUID, work_id: UUID, data: RatingInput, actor: Actor,
+                       service: Annotated[ExhibitionRatingService, Depends(get_exhibition_rating_service)], response: Response) -> RatingState:
+    response.headers["Cache-Control"] = "private, no-store"
+    response.headers["Vary"] = "Cookie, Authorization"
+    return await service.change(exhibition_id, work_id, actor, data.score)
+
+
+@router.delete("/{exhibition_id}/works/{work_id}/rating", response_model=RatingState)
+async def remove_artwork_rating(exhibition_id: UUID, work_id: UUID, actor: Actor,
+                               service: Annotated[ExhibitionRatingService, Depends(get_exhibition_rating_service)], response: Response) -> RatingState:
+    response.headers["Cache-Control"] = "private, no-store"
+    response.headers["Vary"] = "Cookie, Authorization"
+    return await service.change(exhibition_id, work_id, actor, None)
 
 
 @router.patch("/{exhibition_id}/submissions/{submission_id}", status_code=204)

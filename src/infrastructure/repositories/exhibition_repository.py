@@ -7,6 +7,7 @@ from sqlalchemy import text
 from sqlalchemy.engine import RowMapping
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
+from src.infrastructure.repositories.exhibition_rating_sql import rating_state_sql
 
 from src.entities.dto.exhibitions import (
     Exhibition,
@@ -306,10 +307,13 @@ class SqlAlchemyExhibitionRepository:
                 await self.session.execute(
                     text(f"""
             select s.*,w.title,w.description,w.storage_path,t.name_en type_name_en,t.name_ar type_name_ar,p.full_name artist_name,
+                   {rating_state_sql()} as rating,
                    p.avatar_object_path as artist_avatar_path from exhibition_submissions s
             join works w on w.work_id=s.work_id join user_profiles p on p.user_id=s.user_id
             join work_types t on t.type_id=w.type_id
             join user_accounts a on a.user_id=s.user_id
+            join user_accounts owner on owner.user_id=w.owner_user_id
+            join exhibitions e on e.exhibition_id=s.exhibition_id
             where s.exhibition_id=:id and {condition} and a.account_status='active' and w.status='published'
             and (cast(:status as text) is null or s.status=:status)
             {"and not exists(select 1 from exhibition_blocks b where b.exhibition_id=s.exhibition_id and b.user_id=s.user_id)" if scope == "public" else ""}

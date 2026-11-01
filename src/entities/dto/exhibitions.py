@@ -3,6 +3,7 @@ from typing import Literal
 from uuid import UUID
 
 from pydantic import BaseModel, Field, field_validator, model_validator
+from src.entities.dto.exhibition_ratings import RatingState
 
 
 class ExhibitionInput(BaseModel):
@@ -96,6 +97,7 @@ class BlockInput(BaseModel):
 
 
 class Submission(BaseModel):
+    rating: RatingState = Field(default_factory=RatingState)
     submission_id: UUID
     work_id: UUID
     user_id: UUID

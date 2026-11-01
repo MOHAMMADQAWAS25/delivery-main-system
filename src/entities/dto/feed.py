@@ -5,6 +5,7 @@ from uuid import UUID
 from pydantic import BaseModel, Field
 
 from src.entities.dto.media import ImageMedia
+from src.entities.dto.exhibition_ratings import WorkRatingSummary
 
 
 @dataclass(frozen=True)
@@ -14,6 +15,7 @@ class FeedPosition:
 
 
 class FeedCardResponse(BaseModel):
+    exhibition_rating: WorkRatingSummary | None = None
     has_exhibition: bool = False
     work_id: UUID
     owner_user_id: UUID

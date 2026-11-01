@@ -1,13 +1,15 @@
 # Internal SQL expression evaluated only for artworks in the selected page.
 # Match the public exhibition gallery: approved entries after the event starts.
 # Approved withdrawals delete the submission; pending withdrawals remain public.
+from src.infrastructure.repositories.exhibition_rating_sql import rating_totals_sql
 def work_exhibitions_sql(work_id: str) -> str:
     if work_id not in {"w.work_id", "page.work_id"}:
         raise ValueError("Unsupported internal work alias")
     return f"""coalesce((
         select jsonb_agg(jsonb_build_object(
             'exhibition_id', e.exhibition_id, 'name', e.name,
-            'year', extract(year from e.event_at at time zone 'Asia/Hebron')::int
+            'year', extract(year from e.event_at at time zone 'Asia/Hebron')::int,
+            'rating', {rating_totals_sql('e.exhibition_id', 'es.work_id')}
         ) order by e.event_at desc, e.exhibition_id)
         from exhibition_submissions es
         join exhibitions e on e.exhibition_id=es.exhibition_id

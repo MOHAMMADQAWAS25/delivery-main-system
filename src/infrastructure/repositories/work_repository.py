@@ -4,6 +4,7 @@ from uuid import UUID
 
 from sqlalchemy import delete, select, text
 from src.infrastructure.repositories.work_exhibition_sql import work_exhibitions_sql, has_work_exhibition_sql
+from src.infrastructure.repositories.exhibition_rating_sql import work_rating_sql
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -75,6 +76,7 @@ class SqlAlchemyWorkRepository:
                 limit :limit
             )
             select page.*,
+                   {work_rating_sql("page.work_id")} as exhibition_rating,
                    {has_work_exhibition_sql("page.work_id")} as has_exhibition,
                    coalesce(p.full_name, 'InkFig artist') as artist_name,
                    p.avatar_object_path as artist_avatar_path,
@@ -228,6 +230,7 @@ class SqlAlchemyWorkRepository:
             f"""
             select
                 w.work_id,
+                {work_rating_sql("w.work_id")} as exhibition_rating,
                 {work_exhibitions_sql("w.work_id") if work_id is not None else "'[]'::jsonb"} as exhibitions,
                 {has_work_exhibition_sql("w.work_id")} as has_exhibition,
                 w.owner_user_id,
@@ -273,6 +276,7 @@ class SqlAlchemyWorkRepository:
         rows = (await self._session.execute(stmt, parameters)).mappings()
         return [
             WorkResponse(
+                exhibition_rating=r.get("exhibition_rating"),
                 has_exhibition=r.get("has_exhibition", False),
                 exhibitions=r.get("exhibitions", []),
                 work_id=r.work_id,
@@ -540,6 +544,7 @@ class SqlAlchemyWorkRepository:
                 text(
                     f"""
                     select w.work_id, w.owner_user_id,
+                           {work_rating_sql("w.work_id")} as exhibition_rating,
                            {has_work_exhibition_sql("w.work_id")} as has_exhibition,
                            coalesce(p.full_name, 'InkFig artist') as artist_name,
                            p.avatar_object_path as artist_avatar_path,
@@ -573,6 +578,7 @@ class SqlAlchemyWorkRepository:
         ).mappings()
         return [
             WorkSearchResponse(
+                exhibition_rating=r.get("exhibition_rating"),
                 has_exhibition=r.get("has_exhibition", False),
                 work_id=r.work_id,
                 owner_user_id=r.owner_user_id,

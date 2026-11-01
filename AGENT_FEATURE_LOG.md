@@ -3327,3 +3327,27 @@ Additive has_exhibition flag; full exhibitions data reserved for single-work det
 ### Deployment and Git
 
 Backend first, frontend next; existing main workflows, no migration or user-system deployment. Matching branch fix/lightweight-exhibition-badges; subject Use lightweight exhibition flags on artwork cards. Fetch/rebase before branch push then previously authorized fast-forward main merge/push. Exact hashes/push/conflict/deployment outcome in handoff. Revert paired revision commits to restore prior year badges; no destructive reset or data rollback. Previous log entries preserved.
+
+## 2026-11-01 - Exhibition-scoped artwork ratings
+
+### Request and changes
+
+Added public1–5 ratings per exhibition/work/voter. New rating service/repository/dependency and PUT/DELETE exhibition-work rating endpoints authenticate session identity, validate strict integer scores, and enforce live account verification/activity/permission, active exhibition window, approved/published/unblocked participation, and no owner/organizer votes. Shared row locks coordinate with existing exhibition edits/reviews/withdrawals/blocking and account/work changes; atomic upsert prevents duplicates and same-score rewrites. Eligibility rechecked after mutation/waits; failures roll back. Server statement time uses inclusive start/exclusive end. Active voters' aggregates exclude inactive/unverified/blocked users and organizer/owner. Results persist after closing; changing/removing votes only while eligible.
+
+Existing page queries now include latest publicly eligible exhibition average/count on feed/search/profile/related cards and separate totals per exhibition in single-artwork details. Gallery submissions include private my_rating/can_rate/reason in the same page request, with private/no-store/Vary headers. No per-card requests, count drift, cross-exhibition score merging, ranking or notifications. Gallery-only voting is frontend scope; no claim a server can prove HTTP callers' visible page. All real authorization is backend-owned.
+
+### Repositories and files
+
+Main-system and companion user-FE; user-system unchanged. Clean main pulled and complete log read. Backend baseline7dd7d40b0f99d651b2da374a14bd4ba028ff8628. New migration20261101_018_create_exhibition_ratings.sql, rating DTO/protocol/service/repository/SQL/dependency and tests; existing works/feed/exhibition/work_exhibitions DTO/query integrations, exhibitions routes, badge/feed/related SQL fixture tests, docs/exhibition-artwork-ratings.md and this log.
+
+### API, database, permissions and scope
+
+Migration required:20261101_018_create_exhibition_ratings.sql. Composite unique vote key, score1–5 check, composite participation FK and account FK with declared cascades, voter index, RLS and service-role-only grants. New exhibitions.rate permission granted to existing works.like roles. Existing/new JWTs use live DB eligibility; no user-system change. Public summaries contain no other-user scores/identities. Pending withdrawal retains visibility; approved withdrawal/submission/exhibition/work/account deletion cascades votes per FK. Account reactivation can restore retained eligible votes; closing is not an immutable score snapshot. No environment, IAM, dependency, credential or import-time state changes; no new SnapStart clocks/connections/clients.
+
+### Verification
+
+176 tests passed; two existing opt-in PostgreSQL checks skipped; mypy src tests passed89 files and git diff --check passed. New tests cover score strictness, session actor, route cache/privacy, lock/upsert/no-op replacement/removal, deny/rollback/missing scope/end-boundary cases and migration DDL/relational constraints, independent events, totals, account deactivation/reactivation/verification, blocking and cascades. SQLite adapts only PG JSON/time/cast syntax; existing related/badge fixtures omit independently tested rating expressions. Initial fixture/source assumptions corrected; full suite rerun. No production votes/reviews/uploads used for testing; no real concurrent PostgreSQL writer/load-plan certification. Existing AnyIO deprecation warning remains.
+
+### Deployment and Git
+
+Apply migration/backend first via existing main workflow, then frontend; no user-system deployment. Matching feature/exhibition-artwork-ratings branches. Backend subject Add exhibition-scoped artwork rating persistence and APIs. Fetch/rebase before branch push and previously authorized fast-forward main merge/push. Exact hashes, conflicts/push/merge and workflow results in handoff. Rollback frontend application commit first, then backend if necessary, preserving rating table/permission rows and votes. Export and explicit approval required before destructive schema rollback; no reset/drop or historical log removal. Detailed policy/limitations in docs.
