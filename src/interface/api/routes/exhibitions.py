@@ -2,6 +2,7 @@ from typing import Annotated, Literal
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query, Response
+from src.entities.dto.exhibition_leaderboard import ExhibitionLeaderboard
 from src.app.services.exhibition_rating_service import ExhibitionRatingService
 from src.entities.dto.exhibition_ratings import RatingInput, RatingState
 from src.interface.dependencies.exhibition_ratings import get_exhibition_rating_service
@@ -25,6 +26,16 @@ from src.interface.dependencies.exhibitions import get_exhibition_service
 router = APIRouter(prefix="/exhibitions", tags=["exhibitions"])
 Service = Annotated[ExhibitionService, Depends(get_exhibition_service)]
 Actor = Annotated[UUID | None, Depends(get_optional_user)]
+
+
+@router.get("/{exhibition_id}/leaderboard", response_model=ExhibitionLeaderboard)
+async def leaderboard(
+    exhibition_id: UUID, service: Service, response: Response,
+    limit: int = Query(20, ge=1, le=50),
+    cursor: int = Query(0, ge=0, le=100000),
+) -> ExhibitionLeaderboard:
+    response.headers["Cache-Control"] = "no-store"
+    return await service.leaderboard(exhibition_id, limit, cursor)
 
 
 @router.get("", response_model=ExhibitionPage)

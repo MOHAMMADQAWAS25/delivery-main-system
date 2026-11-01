@@ -1,3 +1,12 @@
+def counted_vote_sql() -> str:
+    # Fixed aliases shared by artwork totals and leaderboard aggregation.
+    return """voter.account_status='active' and voter.is_active=true
+          and voter.email_verified_at is not null
+          and r.user_id<>artwork.owner_user_id and r.user_id<>event.creator_user_id
+          and not exists(select 1 from exhibition_blocks b
+                         where b.exhibition_id=r.exhibition_id and b.user_id=r.user_id)"""
+
+
 def rating_totals_sql(exhibition_id: str, work_id: str) -> str:
     if (exhibition_id, work_id) not in {("e.exhibition_id", "es.work_id"), ("s.exhibition_id", "s.work_id"), (":exhibition", ":work")}:
         raise ValueError("Unsupported rating scope")
@@ -8,11 +17,7 @@ def rating_totals_sql(exhibition_id: str, work_id: str) -> str:
         join exhibitions event on event.exhibition_id=r.exhibition_id
         join works artwork on artwork.work_id=r.work_id
         where r.exhibition_id={exhibition_id} and r.work_id={work_id}
-          and voter.account_status='active' and voter.is_active=true
-          and voter.email_verified_at is not null
-          and r.user_id<>artwork.owner_user_id and r.user_id<>event.creator_user_id
-          and not exists(select 1 from exhibition_blocks b
-                         where b.exhibition_id=r.exhibition_id and b.user_id=r.user_id))"""
+          and {counted_vote_sql()})"""
 
 
 def work_rating_sql(work_id: str) -> str:

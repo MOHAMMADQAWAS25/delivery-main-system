@@ -3373,3 +3373,26 @@ Additive public exhibition_rating.name on existing feed/work/search/profile/rela
 ### Deployment and Git
 
 Deploy backend first, frontend second through existing main workflows; no migration/user-system deployment. Matching branch fix/exhibition-community-polish. Backend subject Include exhibition names in artwork badge summaries. Fetch/rebase before branch push, then previously authorized fast-forward main merge/push. Exact hashes, conflicts/push/merge and workflows reported in handoff. Revert frontend first, then this additive backend commit if required; preserve votes/schema and unrelated work. Historical entries unchanged.
+
+
+## 2026-11-01 - Per-exhibition read-only leaderboard
+
+### Request and changes
+
+Add a leaderboard for each exhibition; omit artworks without counted votes entirely. Public GET leaderboard with response DTO, service/repository protocol and one aggregate/rank/page SQL statement. Shared counted-vote predicate preserves existing totals rules. Rank all eligible works by unrounded average then vote count; exact ties share competition rank; creation time/UUID stabilize tie presentation. Only approved, published, active/unblocked participants after start; active verified non-owner/non-organizer unblocked votes count.
+
+### Repositories and scope
+
+Affected main-system and user-FE, matching feature/exhibition-leaderboard branches from updated clean main; baselines backend3162130 and frontend7d0f78a. Complete root feature logs read before changes. User-system unchanged. No credentials, generated assets, dependencies, unrelated files or historical log edits. Implementation and rollback notes in docs/exhibition-leaderboard.md.
+
+### API, database, permissions and SnapStart
+
+No migration or new write permission. Reuse existing rating/submission indexes. Backend filters and ranks complete eligible set before pagination. Public summaries contain no personal vote or voter identity. No startup connections/clock/state changes. Live offset pagination is not a frozen snapshot; moved rows may be skipped across requests, duplicates are hidden and Refresh restarts. Past results remain subject to moderation/account status; no winner declaration.
+
+### Verification
+
+178 pytest tests passed, two existing opt-in PostgreSQL checks skipped; mypy passed92 files. New executable SQLite query test covers ordering, ties/competition gaps, cross-page ranks, zero/invalid-vote exclusion, rejected/private works, independent exhibition scope and upcoming empty result. Existing rating regressions passed after predicate extraction. git diff --check passed. Initial sandbox access errors resolved by running authorized checks with required filesystem access. Initial missing route annotation and optional driver type in new test corrected before successful type check. SQLite is not real PostgreSQL concurrency/load-plan certification. Existing AnyIO deprecation warning remains. No production votes or data mutations used for testing.
+
+### Deployment and Git
+
+Deploy backend first, frontend second through existing main workflows; no user-system deployment. Commit subject: Add paginated exhibition leaderboards with counted votes. Fetch/rebase before branch push; previously authorized fast-forward merge/push main. Exact commit hashes, conflicts, push/merge and workflow results in final handoff. Revert frontend ticket commit first, then backend ticket commit if requested, preserving historical logs, votes/schema and unrelated work; no reset or destructive rollback.

@@ -1,4 +1,5 @@
 from typing import Any
+from src.entities.dto.exhibition_leaderboard import ExhibitionLeaderboard
 from uuid import UUID, uuid4
 
 from src.entities.dto.exhibitions import (
@@ -15,6 +16,11 @@ from src.entities.repositories.works import WorkMediaProcessor, WorkStorage
 
 
 class ExhibitionService:
+    async def leaderboard(self, exhibition_id: UUID, limit: int, cursor: int) -> ExhibitionLeaderboard:
+        exhibition = await self.get(exhibition_id)
+        page = await self.repository.leaderboard(exhibition_id, limit, cursor)
+        return ExhibitionLeaderboard(exhibition=exhibition, **page)
+
     async def pending_counts(self, actor: UUID | None) -> dict[str, Any]:
         await self.authorize(actor, "exhibitions.manage")
         return await self.repository.pending_counts()
